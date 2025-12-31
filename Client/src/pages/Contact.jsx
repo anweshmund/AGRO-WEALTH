@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiSend } from 'react-icons/fi';
+import { useApp } from '../context/AppContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
 const Contact = () => {
+  const { submitContact, loading } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setError('');
+    setSuccess(false);
+    
+    try {
+      await submitContact(formData);
+      setSuccess(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setTimeout(() => setSuccess(false), 5000);
+    } catch (err) {
+      setError(err.message || 'Failed to send message. Please try again.');
+    }
   };
 
   return (
@@ -122,8 +135,18 @@ const Contact = () => {
                     required
                   />
                 </div>
-                <Button type="submit" variant="primary" className="w-full">
-                  <FiSend /> Send Message
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                    Thank you for your message! We will get back to you soon.
+                  </div>
+                )}
+                <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+                  <FiSend /> {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </Card>

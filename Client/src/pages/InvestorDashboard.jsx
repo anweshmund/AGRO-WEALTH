@@ -7,7 +7,7 @@ import Card from '../components/Card';
 import { cropTypes, locations } from '../data/mockData';
 
 const InvestorDashboard = () => {
-  const { projects, investments, bookmarkedProjects, toggleBookmark } = useApp();
+  const { currentUser, projects, investments, bookmarkedProjects, toggleBookmark } = useApp();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCrop, setFilterCrop] = useState('');
@@ -15,7 +15,11 @@ const InvestorDashboard = () => {
   const [filterRange, setFilterRange] = useState('');
 
   const activeProjects = projects.filter(p => p.status === 'active' && p.approved);
-  const myInvestments = investments.filter(inv => inv.investorId === 'investor1');
+  const userId = currentUser?._id || currentUser?.id;
+  const myInvestments = investments.filter(inv => {
+    const invId = inv.investorId?._id || inv.investorId;
+    return invId === userId || invId?.toString() === userId?.toString();
+  });
   const totalInvested = myInvestments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalReturns = myInvestments.reduce((sum, inv) => sum + (inv.currentValue - inv.amount), 0);
 
@@ -144,12 +148,12 @@ const InvestorDashboard = () => {
                       className="w-full h-full object-cover"
                     />
                     <button
-                      onClick={() => toggleBookmark(project.id)}
+                      onClick={() => toggleBookmark(project._id || project.id)}
                       className="absolute top-2 right-2 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
                     >
                       <FiBookmark
                         className={`w-5 h-5 ${
-                          bookmarkedProjects.includes(project.id)
+                          bookmarkedProjects.includes(project._id || project.id)
                             ? 'fill-amber-500 text-amber-500'
                             : 'text-gray-600'
                         }`}
@@ -181,7 +185,7 @@ const InvestorDashboard = () => {
                     </div>
 
                     <button
-                      onClick={() => navigate(`/projects/${project.id}`)}
+                      onClick={() => navigate(`/projects/${project._id || project.id}`)}
                       className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors"
                     >
                       View Details
@@ -199,7 +203,8 @@ const InvestorDashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">My Investments</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {myInvestments.map(investment => {
-                const project = projects.find(p => p.id === investment.projectId);
+                const projectId = investment.projectId?._id || investment.projectId;
+                const project = projects.find(p => (p._id || p.id) === projectId);
                 return (
                   <Card key={investment.id} className="p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{investment.projectTitle}</h3>
@@ -224,7 +229,7 @@ const InvestorDashboard = () => {
                       </div>
                     </div>
                     <button
-                      onClick={() => navigate(`/projects/${investment.projectId}`)}
+                      onClick={() => navigate(`/projects/${projectId}`)}
                       className="w-full mt-4 text-green-600 hover:text-green-700 font-semibold text-sm"
                     >
                       View Project →

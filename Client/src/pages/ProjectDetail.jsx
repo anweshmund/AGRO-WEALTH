@@ -13,7 +13,7 @@ const ProjectDetail = () => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [showInvestModal, setShowInvestModal] = useState(false);
 
-  const project = projects.find(p => p.id === id);
+  const project = projects.find(p => (p._id || p.id) === id);
 
   if (!project) {
     return (
@@ -27,16 +27,21 @@ const ProjectDetail = () => {
   }
 
   const progress = (project.amountRaised / project.fundingGoal) * 100;
-  const isBookmarked = bookmarkedProjects.includes(project.id);
+  const projectId = project._id || project.id;
+  const isBookmarked = bookmarkedProjects.includes(projectId);
   const canInvest = currentUser?.role === 'investor' && project.status === 'active' && project.approved;
 
-  const handleInvest = () => {
+  const handleInvest = async () => {
     const amount = parseInt(investmentAmount);
     if (amount && amount >= 10000) {
-      investInProject(project.id, amount);
-      setShowInvestModal(false);
-      setInvestmentAmount('');
-      alert(`Successfully invested ₹${amount.toLocaleString('en-IN')} in ${project.title}!`);
+      try {
+        await investInProject(projectId, amount);
+        setShowInvestModal(false);
+        setInvestmentAmount('');
+        alert(`Successfully invested ₹${amount.toLocaleString('en-IN')} in ${project.title}!`);
+      } catch (error) {
+        alert(error.message || 'Failed to invest. Please try again.');
+      }
     } else {
       alert('Minimum investment is ₹10,000');
     }
@@ -64,7 +69,7 @@ const ProjectDetail = () => {
                   className="w-full h-full object-cover"
                 />
                 <button
-                  onClick={() => toggleBookmark(project.id)}
+                  onClick={() => toggleBookmark(projectId)}
                   className="absolute top-4 right-4 p-3 bg-white/90 rounded-full hover:bg-white transition-colors"
                 >
                   <FiBookmark

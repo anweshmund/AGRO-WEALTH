@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
-import { mockUsers } from '../data/mockData';
 import Button from '../components/Button';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
   const role = searchParams.get('role') || '';
-  const { login } = useApp();
+  const { login, loading, error: contextError } = useApp();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -17,28 +16,29 @@ const Login = () => {
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Mock authentication - in real app, this would be an API call
-    const user = Object.values(mockUsers).find(
-      u => u.email === formData.email && u.role === formData.role
-    );
-
-    if (user) {
-      login(user);
+    try {
+      const user = await login(formData);
+      
+      // Navigate based on role
       if (user.role === 'farmer') {
         navigate('/farmer/dashboard');
       } else if (user.role === 'investor') {
         navigate('/investor/dashboard');
       } else if (user.role === 'admin') {
         navigate('/admin/dashboard');
+      } else {
+        navigate('/');
       }
-    } else {
-      setError('Invalid credentials. Use: john@example.com (farmer), sarah@example.com (investor), admin@agriwealth.com (admin)');
+    } catch (err) {
+      setError(err.message || 'Invalid credentials. Please try again.');
     }
   };
+
+  const displayError = error || contextError;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center py-20">
@@ -81,6 +81,7 @@ const Login = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your email"
               required
+              disabled={loading}
             />
           </div>
 
@@ -95,27 +96,20 @@ const Login = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your password"
               required
+              disabled={loading}
             />
           </div>
 
-          {error && (
+          {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {displayError}
             </div>
           )}
 
-          <Button type="submit" variant="primary" className="w-full">
-            Sign In
+          <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p className="mb-2">Demo Credentials:</p>
-          <p className="text-xs">Farmer: john@example.com</p>
-          <p className="text-xs">Investor: sarah@example.com</p>
-          <p className="text-xs">Admin: admin@agriwealth.com</p>
-          <p className="text-xs">(Password: any)</p>
-        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
@@ -131,4 +125,3 @@ const Login = () => {
 };
 
 export default Login;
-

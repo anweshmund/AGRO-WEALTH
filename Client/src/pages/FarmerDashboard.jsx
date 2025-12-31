@@ -13,7 +13,11 @@ const FarmerDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
 
-  const myProjects = projects.filter(p => p.farmerId === currentUser?.id);
+  const myProjects = projects.filter(p => {
+    const farmerId = p.farmerId?._id || p.farmerId || p.farmerId;
+    const userId = currentUser?._id || currentUser?.id;
+    return farmerId === userId || farmerId?.toString() === userId?.toString();
+  });
   const activeProjects = myProjects.filter(p => p.status === 'active');
   const pendingProjects = myProjects.filter(p => p.status === 'pending');
   const totalRaised = myProjects.reduce((sum, p) => sum + p.amountRaised, 0);
@@ -25,20 +29,29 @@ const FarmerDashboard = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (projectId) => {
+  const handleDelete = async (projectId) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
-      deleteProject(projectId);
+      try {
+        await deleteProject(projectId);
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Failed to delete project. Please try again.');
+      }
     }
   };
 
-  const handleFormSubmit = (projectData) => {
-    if (editingProject) {
-      updateProject(editingProject.id, projectData);
-      setEditingProject(null);
-    } else {
-      addProject(projectData);
+  const handleFormSubmit = async (projectData) => {
+    try {
+      if (editingProject) {
+        await updateProject(editingProject._id || editingProject.id, projectData);
+        setEditingProject(null);
+      } else {
+        await addProject(projectData);
+      }
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error saving project:', error);
     }
-    setShowForm(false);
   };
 
   return (
@@ -164,7 +177,7 @@ const FarmerDashboard = () => {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigate(`/projects/${project.id}`)}
+                      onClick={() => navigate(`/projects/${project._id || project.id}`)}
                     >
                       <FiEye /> View
                     </Button>
@@ -178,7 +191,7 @@ const FarmerDashboard = () => {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleDelete(project.id)}
+                      onClick={() => handleDelete(project._id || project.id)}
                     >
                       <FiTrash2 />
                     </Button>

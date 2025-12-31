@@ -76,7 +76,7 @@ const Projects = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map(project => (
-              <Card key={project.id} className="overflow-hidden cursor-pointer" onClick={() => navigate(`/projects/${project.id}`)}>
+              <Card key={project._id || project.id} className="overflow-hidden cursor-pointer" onClick={() => navigate(`/projects/${project._id || project.id}`)}>
                 <div className="relative h-48">
                   <img
                     src={project.image}
@@ -86,13 +86,13 @@ const Projects = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleBookmark(project.id);
+                      toggleBookmark(project._id || project.id);
                     }}
                     className="absolute top-2 right-2 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
                   >
                     <FiBookmark
                       className={`w-5 h-5 ${
-                        bookmarkedProjects.includes(project.id)
+                        bookmarkedProjects.includes(project._id || project.id)
                           ? 'fill-amber-500 text-amber-500'
                           : 'text-gray-600'
                       }`}

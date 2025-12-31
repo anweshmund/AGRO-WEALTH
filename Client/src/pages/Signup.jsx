@@ -7,7 +7,7 @@ import Button from '../components/Button';
 const Signup = () => {
   const [searchParams] = useSearchParams();
   const role = searchParams.get('role') || 'farmer';
-  const { login } = useApp();
+  const { register, loading, error: contextError } = useApp();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -20,7 +20,7 @@ const Signup = () => {
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -34,25 +34,30 @@ const Signup = () => {
       return;
     }
 
-    // Mock signup - in real app, this would be an API call
-    const newUser = {
-      id: `user${Date.now()}`,
-      name: formData.name,
-      email: formData.email,
-      role: formData.role,
-      avatar: `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&sig=${Date.now()}`,
-      location: formData.location,
-      phone: formData.phone,
-      joinDate: new Date().toISOString().split('T')[0]
-    };
+    try {
+      const user = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        phone: formData.phone || '',
+        location: formData.location || ''
+      });
 
-    login(newUser);
-    if (formData.role === 'farmer') {
-      navigate('/farmer/dashboard');
-    } else if (formData.role === 'investor') {
-      navigate('/investor/dashboard');
+      // Navigate based on role
+      if (user.role === 'farmer') {
+        navigate('/farmer/dashboard');
+      } else if (user.role === 'investor') {
+        navigate('/investor/dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
     }
   };
+
+  const displayError = error || contextError;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-amber-50 flex items-center justify-center py-20">
@@ -80,6 +85,7 @@ const Signup = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your full name"
               required
+              disabled={loading}
             />
           </div>
 
@@ -94,6 +100,7 @@ const Signup = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your email"
               required
+              disabled={loading}
             />
           </div>
 
@@ -107,6 +114,7 @@ const Signup = () => {
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your phone number"
+              disabled={loading}
             />
           </div>
 
@@ -120,6 +128,7 @@ const Signup = () => {
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your location"
+              disabled={loading}
             />
           </div>
 
@@ -134,6 +143,7 @@ const Signup = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Create a password"
               required
+              disabled={loading}
             />
           </div>
 
@@ -148,17 +158,18 @@ const Signup = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Confirm your password"
               required
+              disabled={loading}
             />
           </div>
 
-          {error && (
+          {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {displayError}
             </div>
           )}
 
-          <Button type="submit" variant="primary" className="w-full">
-            Create Account
+          <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
 
@@ -176,4 +187,3 @@ const Signup = () => {
 };
 
 export default Signup;
-

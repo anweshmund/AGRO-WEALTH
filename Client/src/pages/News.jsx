@@ -17,7 +17,7 @@ const News = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {news.map(item => (
-            <Card key={item.id} className="overflow-hidden">
+            <Card key={item._id || item.id} className="overflow-hidden">
               <img
                 src={item.image}
                 alt={item.title}
@@ -28,7 +28,9 @@ const News = () => {
                   <span className="text-xs text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full">
                     {item.category}
                   </span>
-                  <span className="text-xs text-gray-500">{item.date}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(item.createdAt || item.date).toLocaleDateString('en-IN')}
+                  </span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">{item.content}</p>
