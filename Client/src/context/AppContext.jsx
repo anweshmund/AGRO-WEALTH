@@ -132,7 +132,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Load messages
   const loadMessages = async () => {
     if (!currentUser) return;
     try {
@@ -144,8 +143,6 @@ export const AppProvider = ({ children }) => {
       throw error;
     }
   };
-
-  // Load bookmarks
   const loadBookmarks = async () => {
     if (!currentUser) return;
     try {

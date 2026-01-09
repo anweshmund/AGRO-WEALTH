@@ -27,24 +27,52 @@ const getHeaders = (includeAuth = true) => {
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
-    ...options,
+    method: options.method || 'GET',
     headers: {
       ...getHeaders(options.requireAuth !== false),
       ...options.headers,
     },
   };
 
+  // Add body if provided
+  if (options.body) {
+    config.body = options.body;
+  }
+
+  // Debug logging (remove in production)
+  if (import.meta.env.DEV && endpoint.includes('/login')) {
+    console.log('API Request:', {
+      url,
+      method: config.method,
+      hasBody: !!config.body,
+      bodyPreview: options.body ? options.body.substring(0, 100) : null
+    });
+  }
+
   try {
     const response = await fetch(url, config);
     const data = await response.json();
 
     if (!response.ok) {
+      // Enhanced error logging
+      if (import.meta.env.DEV) {
+        console.error('API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          message: data.message,
+          endpoint
+        });
+      }
       throw new Error(data.message || 'Something went wrong');
     }
 
     return data;
   } catch (error) {
-    throw error;
+    // Re-throw with more context
+    if (error.message) {
+      throw error;
+    }
+    throw new Error(`Network error: ${error.message || 'Failed to connect to server'}`);
   }
 };
 

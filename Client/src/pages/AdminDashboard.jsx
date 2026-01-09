@@ -10,8 +10,13 @@ const AdminDashboard = () => {
   const { projects, news, addNews, approveProject, rejectProject } = useApp();
   const [showNewsForm, setShowNewsForm] = useState(false);
 
-  const pendingProjects = projects.filter(p => p.status === 'pending' || !p.approved);
-  const totalUsers = 750; // Mock data
+  // Pending projects are those not yet approved or explicitly marked pending
+  const pendingProjects = projects.filter(
+    (p) => p.status === 'pending' || p.approved === false
+  );
+
+  // TODO: Replace with real user count from backend when user stats endpoint is added
+  const totalUsers = 750; // Currently static
   const totalProjects = projects.length;
   const totalInvestments = projects.reduce((sum, p) => sum + p.amountRaised, 0);
 
@@ -84,15 +89,20 @@ const AdminDashboard = () => {
             </Card>
           ) : (
             <div className="space-y-4">
-              {pendingProjects.map(project => (
-                <Card key={project.id} className="p-6">
+              {pendingProjects.map(project => {
+                const projectId = project._id || project.id;
+
+                return (
+                <Card key={projectId} className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex gap-4 flex-1">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="w-24 h-24 rounded-lg object-cover"
-                      />
+                      {project.image && (
+                        <img
+                          src={project.image}
+                          alt={project.title}
+                          className="w-24 h-24 rounded-lg object-cover"
+                        />
+                      )}
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-2">{project.title}</h3>
                         <p className="text-gray-600 text-sm mb-2">{project.description}</p>
@@ -110,21 +120,22 @@ const AdminDashboard = () => {
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => approveProject(project.id)}
+                        onClick={() => approveProject(projectId)}
                       >
                         <FiCheck /> Approve
                       </Button>
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => rejectProject(project.id)}
+                        onClick={() => rejectProject(projectId)}
                       >
                         <FiX /> Reject
                       </Button>
                     </div>
                   </div>
                 </Card>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>

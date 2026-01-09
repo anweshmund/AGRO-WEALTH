@@ -9,7 +9,12 @@
     "dev": "nodemon server.js",
     "create-admin": "node scripts/createAdmin.js",
     "test-admin": "node scripts/testAdminLogin.js",
-    "reset-admin": "node scripts/resetAdminPassword.js"
+    "test-login-api": "node scripts/testLoginAPI.js",
+    "reset-admin": "node scripts/resetAdminPassword.js",
+    "reset-admin-simple": "node scripts/resetAdminPasswordSimple.js",
+    "change-admin-password": "node scripts/changeAdminPassword.js",
+    "change-user-password": "node scripts/changeUserPassword.js",
+    "diagnose-admin": "node scripts/diagnoseAdminLogin.js"
   },
   "keywords": ["agriculture", "investment", "platform"],
   "author": "",
